@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Framework", "Prism.Framework\Prism.Framework.csproj", "{38B9E6A3-E7D7-4A80-9EE1-EDF59A3A83E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Decorating", "Prism.Decorating\Prism.Decorating.csproj", "{1803E0BD-E332-4EFD-A36B-4EE071367D30}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E8473C1C-51D4-462F-B610-D505331CA4C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Framework.Test", "Tests\Prism.Framework.Test\Prism.Framework.Test.csproj", "{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Decorating.Test", "Tests\Prism.Decorating.Test\Prism.Decorating.Test.csproj", "{F674A647-916B-43A0-A9E6-2EA3BB7112D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Injecting", "Prism.Injecting\Prism.Injecting.csproj", "{328E096E-54FB-432F-B39B-7F9871A2FFAD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38B9E6A3-E7D7-4A80-9EE1-EDF59A3A83E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38B9E6A3-E7D7-4A80-9EE1-EDF59A3A83E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38B9E6A3-E7D7-4A80-9EE1-EDF59A3A83E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38B9E6A3-E7D7-4A80-9EE1-EDF59A3A83E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1803E0BD-E332-4EFD-A36B-4EE071367D30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1803E0BD-E332-4EFD-A36B-4EE071367D30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1803E0BD-E332-4EFD-A36B-4EE071367D30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1803E0BD-E332-4EFD-A36B-4EE071367D30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F674A647-916B-43A0-A9E6-2EA3BB7112D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F674A647-916B-43A0-A9E6-2EA3BB7112D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F674A647-916B-43A0-A9E6-2EA3BB7112D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F674A647-916B-43A0-A9E6-2EA3BB7112D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{328E096E-54FB-432F-B39B-7F9871A2FFAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{328E096E-54FB-432F-B39B-7F9871A2FFAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{328E096E-54FB-432F-B39B-7F9871A2FFAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{328E096E-54FB-432F-B39B-7F9871A2FFAD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11} = {E8473C1C-51D4-462F-B610-D505331CA4C9}
+		{F674A647-916B-43A0-A9E6-2EA3BB7112D6} = {E8473C1C-51D4-462F-B610-D505331CA4C9}
+	EndGlobalSection
+EndGlobal
