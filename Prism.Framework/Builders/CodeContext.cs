@@ -3,7 +3,11 @@ using System.Reflection.Emit;
 
 namespace Prism.Framework.Builders;
 
-public ref struct CodeContext
+/// <summary>
+/// Context to use in the terminal stage of the code generation procedure.
+/// This context contains local variable which can be used to control the proxy method behavior.
+/// </summary>
+public readonly ref struct CodeContext
 {
     /// <summary>
     /// Reflection information of the proxy method.
@@ -26,11 +30,37 @@ public ref struct CodeContext
     /// </summary>
     public readonly LocalBuilder Skipped;
 
-    public CodeContext(MethodBuilder builder, MethodInfo method)
+    /// Addtional data dictionary.
+    public readonly Dictionary<string, object> Data;
+
+    /// <summary>
+    /// Construct a code context to generate IL codes.
+    /// The method context will share the additional data dictionary with this code context.
+    /// </summary>
+    /// <param name="code">IL stream to append codes to.</param>
+    /// <param name="method">Method context.</param>
+    public CodeContext(ILGenerator code, MethodContext method)
     {
-        Method = method;
-        Code = builder.GetILGenerator();
+        Method = method.ProxiedMethod;
+        Code = code;
         Skipped = Code.DeclareLocal(typeof(bool));
-        Result = builder.ReturnType != typeof(void) ? Code.DeclareLocal(builder.ReturnType) : null;
+        Result = method.ProxiedMethod.ReturnType != typeof(void) ? 
+            Code.DeclareLocal(method.ProxiedMethod.ReturnType) : null;
+        Data = method.Data;
+    }
+    
+    /// <summary>
+    /// Additional data accessor.
+    /// </summary>
+    /// <param name="name">Name of the data entry.</param>
+    public object? this[string name]
+    {
+        get => Data.TryGetValue(name, out var data) ? data : null;
+        set
+        {
+            if (value != null)
+                Data[name] = value;
+            else Data.Remove(name);
+        }
     }
 }

@@ -4,6 +4,12 @@ using System.Reflection.Metadata;
 
 namespace Prism.Framework.Builders;
 
+/// <summary>
+/// Context for plugins to insert code generation operations.
+/// Those stored operations will be invoked after all plugins have registered their operations.
+/// Then operations will be performed in groups as triggering pre-invoking event, invoking proxied method,
+/// and triggering post-invoking event in sequence.
+/// </summary>
 public class MethodContext
 {
     /// <summary>
@@ -15,6 +21,26 @@ public class MethodContext
     /// Id of this proxy method.
     /// </summary>
     public readonly int Id;
+    
+    /// <summary>
+    /// Additional data attached to this method context.
+    /// </summary>
+    public readonly Dictionary<string, object> Data = new();
+    
+    /// <summary>
+    /// Additional data accessor.
+    /// </summary>
+    /// <param name="name">Name of the data entry.</param>
+    public object? this[string name]
+    {
+        get => Data.TryGetValue(name, out var data) ? data : null;
+        set
+        {
+            if (value != null)
+                Data[name] = value;
+            else Data.Remove(name);
+        }
+    }
     
     public MethodContext(MethodInfo method, int id)
     {

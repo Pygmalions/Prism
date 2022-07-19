@@ -263,8 +263,8 @@ public class Generator
             proxyMethod, methodBuilder.ProxiedMethod);
 
         // Initialize code context
-        var context = new CodeContext(proxyMethod, methodBuilder.ProxiedMethod);
-        var code = context.Code;
+        var code = proxyMethod.GetILGenerator();
+        var context = new CodeContext(code, methodBuilder);
 
         // Initialize skipping flag variable.
         code.Emit(OpCodes.Ldc_I4_0);
