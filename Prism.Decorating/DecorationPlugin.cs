@@ -31,7 +31,7 @@ public class DecorationPlugin : IProxyPlugin
             var proxy = context.Builder.DefineField(
                 $"_Prism_Decorator_{proxyId++}_{method.Name}", typeof(MethodDecorator),
                 FieldAttributes.Private);
-            proxies!.Add((proxy, method));
+            proxies.Add((proxy, method));
             GenerateMethod(methodContext, proxy);
         }
         
@@ -126,24 +126,28 @@ public class DecorationPlugin : IProxyPlugin
         }
     }
 
+    private const string ContextIdFieldDecorator = "Decorate.Decorator";
+    private const string ContextIdVariableInvocation = "Decorate.Invocation";
+    private const string ContextIdVariableArguments = "Decorate.Arguments";
+    
     private static void GenerateMethod(MethodContext builder, FieldInfo proxy)
     {
-        LocalBuilder? variableInvocation = null;
-        LocalBuilder variableArguments = null!;
-        builder.InsertAfterInvoking((ref CodeContext context) => 
-            GenerateCodeBeforeInvoking(ref context, out variableInvocation, proxy, out variableArguments));
-        builder.InsertAfterInvoking((ref CodeContext context) => 
-            GenerateCodeAfterInvoking(ref context, variableInvocation, proxy, variableArguments));
+        builder[ContextIdFieldDecorator] = proxy;
+        builder.InsertAfterInvoking(GenerateCodeBeforeInvoking);
+        builder.InsertAfterInvoking(GenerateCodeAfterInvoking);
     }
 
-    private static void GenerateCodeBeforeInvoking(
-        ref CodeContext context, out LocalBuilder? variableInvocation, FieldInfo proxy, out LocalBuilder variableArguments)
+    private static void GenerateCodeBeforeInvoking(ref CodeContext context)
     {
         var code = context.Code;
-        variableInvocation = code.DeclareLocal(typeof(Invocation));
+        var variableInvocation = code.DeclareLocal(typeof(Invocation));
+        var variableArguments = code.DeclareLocal(typeof(object?[]));
 
-        variableArguments = code.DeclareLocal(typeof(object?[]));
-
+        context[ContextIdVariableInvocation] = variableInvocation;
+        context[ContextIdVariableArguments] = variableArguments;
+        
+        var proxy = (FieldInfo)context[ContextIdFieldDecorator]!;
+        
         // Construct arguments array.
         var methodParameters = context.Method.GetParameters();
         code.Emit(OpCodes.Call,
@@ -238,8 +242,12 @@ public class DecorationPlugin : IProxyPlugin
     }
     
     private static void GenerateCodeAfterInvoking(
-        ref CodeContext context, LocalBuilder? variableInvocation, FieldInfo proxy, LocalBuilder variableArguments)
+        ref CodeContext context)
     {
+        var variableInvocation = (LocalBuilder)context[ContextIdVariableInvocation]!;
+        var variableArguments = (LocalBuilder)context[ContextIdVariableArguments]!;
+        var proxy = (FieldInfo)context[ContextIdFieldDecorator]!;
+        
         if (variableInvocation == null)
             throw new Exception("Object proxy plugin pre-invoking code action has not been invoked.");
 

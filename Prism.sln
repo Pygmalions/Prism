@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Decorating.Test", "Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Injecting", "Prism.Injecting\Prism.Injecting.csproj", "{328E096E-54FB-432F-B39B-7F9871A2FFAD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Injecting.Test", "Tests\Prism.Injecting.Test\Prism.Injecting.Test.csproj", "{E63062D9-AC3D-406F-BD27-9A69BBF0EEDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,9 +40,14 @@ Global
 		{328E096E-54FB-432F-B39B-7F9871A2FFAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{328E096E-54FB-432F-B39B-7F9871A2FFAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{328E096E-54FB-432F-B39B-7F9871A2FFAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E63062D9-AC3D-406F-BD27-9A69BBF0EEDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E63062D9-AC3D-406F-BD27-9A69BBF0EEDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E63062D9-AC3D-406F-BD27-9A69BBF0EEDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E63062D9-AC3D-406F-BD27-9A69BBF0EEDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11} = {E8473C1C-51D4-462F-B610-D505331CA4C9}
 		{F674A647-916B-43A0-A9E6-2EA3BB7112D6} = {E8473C1C-51D4-462F-B610-D505331CA4C9}
+		{E63062D9-AC3D-406F-BD27-9A69BBF0EEDC} = {E8473C1C-51D4-462F-B610-D505331CA4C9}
 	EndGlobalSection
 EndGlobal
