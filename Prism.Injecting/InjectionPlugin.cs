@@ -14,6 +14,10 @@ public class InjectionPlugin : IProxyPlugin
         if (baseClass == null)
             throw new Exception($"Failed to access the base class information of {context.Builder}.");
 
+        // Check whether this class has an custom implementation of IInjectable.
+        if (baseClass.IsAssignableTo(typeof(IInjectable)))
+            return;
+        
         var injectionFields = CollectInjectionFields(baseClass);
         var injectionProperties = CollectInjectionProperties(baseClass);
         

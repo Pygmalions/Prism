@@ -11,6 +11,14 @@ public class DecorationPlugin : IProxyPlugin
 {
     public void Modify(ClassContext context)
     {
+        var baseClass = context.Builder.BaseType;
+        if (baseClass == null)
+            throw new Exception($"Failed to access the base class information of {context.Builder}.");
+
+        // Check whether this class has an custom implementation of IDecorated.
+        if (baseClass.IsAssignableTo(typeof(IDecorated)))
+            return;
+        
         var builder = context.Builder;
         builder.AddInterfaceImplementation(typeof(IDecorated));
         
