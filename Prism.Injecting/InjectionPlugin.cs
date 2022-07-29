@@ -112,6 +112,12 @@ public class InjectionPlugin : IProxyPlugin
         constructorCode.Emit(OpCodes.Ret);
     }
 
+    /// <summary>
+    /// Load injection content and store it into the field.
+    /// </summary>
+    /// <param name="code">IL stream.</param>
+    /// <param name="field">Field to inject.</param>
+    /// <param name="variableInjection">Injection content.</param>
     private static void InsertFieldInjectingCode(ILGenerator code, FieldInfo field, 
         LocalBuilder variableInjection)
     {
@@ -122,6 +128,12 @@ public class InjectionPlugin : IProxyPlugin
         code.Emit(OpCodes.Stfld, field);
     }
     
+    /// <summary>
+    /// Load injection content and store it into the property.
+    /// </summary>
+    /// <param name="code">IL stream.</param>
+    /// <param name="property">Property to inject.</param>
+    /// <param name="variableInjection">Injection content.</param>
     private static void InsertPropertyInjectingCode(ILGenerator code, PropertyInfo property, 
         LocalBuilder variableInjection)
     {
@@ -133,7 +145,14 @@ public class InjectionPlugin : IProxyPlugin
             property.SetMethod!);
     }
     
-    private static void InsertQueryingCode(ILGenerator code, Type category, string? name, 
+    /// <summary>
+    /// Generate query code which will get the injection content in the container.
+    /// </summary>
+    /// <param name="code">IL stream.</param>
+    /// <param name="category">Category type of the injection content.</param>
+    /// <param name="id">Optional searching ID.</param>
+    /// <param name="variableInjection">Local variable to store injection content.</param>
+    private static void InsertQueryingCode(ILGenerator code, Type category, string? id, 
         LocalBuilder variableInjection)
     {
         // Load container.
@@ -144,8 +163,8 @@ public class InjectionPlugin : IProxyPlugin
         code.Emit(OpCodes.Call, typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle))!);
 
         // Load optional name or null.
-        if (name != null)
-            code.Emit(OpCodes.Ldstr, name);
+        if (id != null)
+            code.Emit(OpCodes.Ldstr, id);
         else code.Emit(OpCodes.Ldnull);
 
         // Get the injection from the container.
