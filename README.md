@@ -21,8 +21,6 @@ rather than let users directly use this framework, which might be hard.
 - [X] **Decorating**: A plugin which allows users to decorate (modify) the behavior of methods in run-time.
 - [X] **Injecting**: A plugin which implements dependency injection (IoC) in proxy classes, 
 which can significantly improve the performance.
-- [ ] **Logging**: A plugin which provides a log interface based on AOP. It provides a report-style log model and
-can be easily connected to other data sources to send logs.
 
 If you have any ideas or suggestions, please open a new issue to let us know.
 Hereby allow us to express our heartfelt gratefulness for your help.
