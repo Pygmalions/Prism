@@ -9,7 +9,7 @@
         <Authors>Pygmalions</Authors>
         <Copyright>MIT License</Copyright>
         <PackageProjectUrl>https://github.com/Pygmalions/</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/Pygmalions/Prism/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/Pygmalions/Prism/</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <PackageTags>AOP Proxy Weaving</PackageTags>
@@ -23,7 +23,7 @@ It is designed in plugin model, which allows users to easily extend its function
     <ItemGroup>
       <None Update="Pygmalion.png">
         <Pack>True</Pack>
-        <PackagePath></PackagePath>
+          <PackagePath>.</PackagePath>
       </None>
     </ItemGroup>
 

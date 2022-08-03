@@ -8,7 +8,7 @@
         <Description>This plugin provides a mechanism to do proactive dependency injection, which means the object to inject proactively get the injection content from the container.</Description>
         <Copyright>MIT License</Copyright>
         <PackageProjectUrl>https://github.com/Pygmalions/</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/Pygmalions/Prism/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/Pygmalions/Prism/</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <PackageId>Pygmalions.Prism.Injecting</PackageId>
@@ -24,8 +24,12 @@
     <ItemGroup>
       <None Update="Pygmalion.png">
         <Pack>True</Pack>
-        <PackagePath></PackagePath>
+          <PackagePath>.</PackagePath>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Pygmalions.Prism.Framework" Version="1.0.0" />
     </ItemGroup>
 
 </Project>

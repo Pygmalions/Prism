@@ -9,7 +9,7 @@
         <Description>This plugin provides a mechanism to modify the behavior of functions in run-time.</Description>
         <Copyright>MIT License.</Copyright>
         <PackageProjectUrl>https://github.com/Pygmalions/</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/Pygmalions/Prism/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/Pygmalions/Prism/</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <PackageTags>AOP Decorator</PackageTags>
@@ -18,14 +18,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Prism.Framework\Prism.Framework.csproj" />
+      <None Update="Pygmalion.png">
+        <Pack>True</Pack>
+        <PackagePath>.</PackagePath>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Pygmalion.png">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
+      <PackageReference Include="Pygmalions.Prism.Framework" Version="1.0.0" />
     </ItemGroup>
 
 </Project>
