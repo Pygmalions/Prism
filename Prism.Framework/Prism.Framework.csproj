@@ -4,6 +4,27 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageId>Pygmalions.Prism.Framework</PackageId>
+        <Title>Prism Framework</Title>
+        <Authors>Pygmalions</Authors>
+        <Copyright>MIT License</Copyright>
+        <PackageProjectUrl>https://github.com/Pygmalions/</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/Pygmalions/Prism/blob/main/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/Pygmalions/Prism/</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <PackageTags>AOP Proxy Weaving</PackageTags>
+        <Description>This framework provides a generator to generate proxy class which
+can override non-final virtual methods of base classes in run-time.
+The generator is implemented with dynamic IL weaving via System.Reflection.Emit library.
+It is designed in plugin model, which allows users to easily extend its function.</Description>
+        <PackageIcon>Pygmalion.png</PackageIcon>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Update="Pygmalion.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
+    </ItemGroup>
 
 </Project>
