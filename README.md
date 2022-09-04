@@ -21,6 +21,7 @@ rather than let users directly use this framework, which might be hard.
 - [X] **Decorating**: A plugin which allows users to decorate (modify) the behavior of methods in run-time.
 - [X] **Injecting**: A plugin which implements dependency injection (IoC) in proxy classes, 
 which can significantly improve the performance.
+- [ ] **Remoting**: A plugin which provides remote procedure call (RPC) support by encoding and decoding invocation contexts.
 
 If you have any ideas or suggestions, please open a new issue to let us know.
 Hereby allow us to express our heartfelt gratefulness for your help.
