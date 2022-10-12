@@ -4,7 +4,7 @@ namespace Prism.Remoting;
 /// Proxy class modified by <see cref="RemotingServerPlugin"/> will be implemented with this attribute,
 /// given the ability to handle invocation data.
 /// </summary>
-public interface IRemoteCallable
+public interface IRemoteServer
 {
     /// <summary>
     /// Handle invocation data.

@@ -1,11 +1,11 @@
 namespace Prism.Remoting;
 
 [AttributeUsage(AttributeTargets.Field)]
-public class DataDecoderAttribute : Attribute
+internal class DataCoderAttribute : Attribute
 {
     public readonly Type DataType;
 
-    public DataDecoderAttribute(Type dataType)
+    public DataCoderAttribute(Type dataType)
     {
         DataType = dataType;
     }

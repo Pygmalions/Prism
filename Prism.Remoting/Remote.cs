@@ -1,5 +1,13 @@
 namespace Prism.Remoting;
 
+/// <summary>
+/// A remote proxy client should not been effected by other proxy plugins,
+/// for its responsibility is only to pack the invocation data and unpack the returning value.
+/// This static class is basically a function-restricted version of Prism proxy generator,
+/// it will only override remote methods with data operating and transporting.
+/// <br/><br/>
+/// Currently, async methods are not supported.
+/// </summary>
 public static class Remote
 {
     private static void PrepareRemoteProxyConstructor()
