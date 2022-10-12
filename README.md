@@ -40,7 +40,7 @@ and we are happy and grateful to add a link to your plugin.
 # Related Efforts
 
 This framework is still under rapid development, thus its API may be unstable.
-If you are looking for mature AOP frameworks, please allow us to recommend other projects for you:
+If you are looking for mature frameworks, please allow us to recommend those production-ready projects for you:
 
 ## AOP
 
@@ -54,5 +54,10 @@ This framework inject codes in the compiling stage as a MSBuild task.
 [Ninject](http://www.ninject.org/): A widely used convenient IoC library. 
 It is easy to use and it have many useful extensions.
 
- [Spring.NET](https://springframework.net/): A .NET implementation of the famous Java framework [Spring](https://spring.io/).
- It is a heavyweight yet comprehensive framework, including but not limited to AOP and IoC.
+[Spring.NET](https://springframework.net/): A .NET implementation of the famous Java framework [Spring](https://spring.io/).
+It is a heavyweight yet comprehensive framework, including but not limited to AOP and IoC.
+
+## RPC
+
+[gRPC](https://github.com/grpc/grpc): A widely used high-performance RPC framework. 
+It support a large range of programming languages and operating systems.
