@@ -1,55 +1,94 @@
 ﻿using System.Reflection;
+using System.Reflection.Emit;
 using Prism.Framework;
 using Prism.Framework.Builders;
 
 namespace Prism.Remoting;
 
-public abstract class RemotingPlugin<TCoder> : IProxyPlugin
+public class RemotingPlugin : RemoteGenerator, IProxyPlugin
 {
-    public abstract void Modify(ClassContext context);
-
-    protected RemotingPlugin()
+    public void Modify(ClassContext context)
     {
-        // Enable built-in value coders by default.
-        AddCoderProvider(typeof(BuiltinValueCoders));
-    }
+        context.Builder.AddInterfaceImplementation(typeof(IRemoteServer));
+        
+        var handlerMethod = context.Builder.DefineMethod("_Prism_HandleInvocation",
+            MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.NewSlot |
+            MethodAttributes.SpecialName | MethodAttributes.Virtual,
+            CallingConventions.Standard,
+            typeof(Memory<byte>), new[] { typeof(Memory<byte>) });
+        context.Builder.DefineMethodOverride(handlerMethod,
+            typeof(IRemoteServer).GetMethod(nameof(IRemoteServer.HandleInvocation))!);
+        var code = handlerMethod.GetILGenerator();
 
-    protected readonly Dictionary<Type, TCoder> Coders = new();
+        // Collect all remote callable methods, organize them with their meta data token.
+        var methods = new List<(MethodInfo Method, Label Target)>();
 
-    public void AddCoder(Type dataType, TCoder coder)
-        => Coders[dataType] = coder;
-
-    public void RemoveCoder(Type dataType)
-        => Coders.Remove(dataType);
-
-    public void AddCoderProvider(Type provider)
-    {
-        foreach (var field in provider.GetFields())
+        foreach (var member in context.GetTriggerMember(typeof(RemoteAttribute)))
         {
-            if (!field.FieldType.IsAssignableTo(typeof(TCoder)))
+            if (member is not MethodInfo method)
                 continue;
-            if (field.GetCustomAttribute<DataCoderAttribute>() is not { } attribute)
-                continue;
-            if (!field.IsStatic || field.GetValue(null) is not TCoder translator)
-                throw new InvalidOperationException(
-                    "Only static DataDecoder field is allowed to be auto discovered.");
-            AddCoder(attribute.DataType, translator);
+            methods.Add((method, code.DefineLabel()));
         }
-    }
 
-    public void RemoveCoderProvider(Type provider)
-    {
-        foreach (var field in provider.GetFields())
+        // Construct a stream from the invocation data.
+        var variableStream = code.DeclareLocal(typeof(MemoryStream));
+        code.Emit(OpCodes.Ldloc_1);
+        code.Emit(OpCodes.Newobj, typeof(MemoryStream).GetConstructor(new []{typeof(byte[])})!);
+        code.Emit(OpCodes.Stloc, variableStream);
+
+        // Decode integer method token.
+        var variableToken = code.DeclareLocal(typeof(int));
+        ApplyDecoder(typeof(int), code, variableStream);
+        code.Emit(OpCodes.Stloc, variableToken);
+
+        // Generate code of method selecting branches.
+        foreach (var (method, label) in methods)
         {
-            if (!field.FieldType.IsAssignableTo(typeof(TCoder)))
-                continue;
-            if (field.GetCustomAttribute<DataCoderAttribute>() is not { } attribute)
-                continue;
-            if (!field.IsStatic || field.GetValue(null) is not TCoder coder)
-                throw new InvalidOperationException(
-                    "Only static DataDecoder field is allowed to be auto discovered.");
-            if (Coders.TryGetValue(attribute.DataType, out var foundCoder) && coder.Equals(foundCoder))
-                Coders.Remove(attribute.DataType);
+            code.Emit(OpCodes.Ldloc, variableToken);
+            code.Emit(OpCodes.Ldc_I4, method.MetadataToken);
+            code.Emit(OpCodes.Beq, label);
         }
+
+        var labelReturning = code.DefineLabel();
+        
+        // Generate code of each method branch.
+        foreach (var (method, label) in methods)
+        {
+            code.MarkLabel(label);
+
+            // Load 'this' onto the stack.
+            code.Emit(OpCodes.Ldloc_0);
+            
+            // Decode parameters from data package.
+            foreach (var parameter in method.GetParameters())
+                ApplyDecoder(parameter.ParameterType, code, variableStream);
+            
+            // Invoke method.
+            code.Emit(OpCodes.Callvirt, method);
+            
+            // Dispose the stream.
+            code.Emit(OpCodes.Ldloc, variableStream);
+            code.Emit(OpCodes.Call, typeof(MemoryStream).GetMethod(nameof(MemoryStream.Dispose))!);
+            // Create an empty stream to store returning value.
+            code.Emit(OpCodes.Newobj, typeof(MemoryStream).GetConstructor(Type.EmptyTypes)!);
+            code.Emit(OpCodes.Stloc, variableStream);
+            
+            // Encode returning value.
+            if (method.ReturnType != typeof(void))
+                ApplyEncoder(method.ReturnType, code, variableStream);
+            
+            // Jump to returning process.
+            code.Emit(OpCodes.Br, labelReturning);
+        }
+
+        code.MarkLabel(labelReturning);
+        
+        // Generate a byte array form the stream.
+        code.Emit(OpCodes.Ldloc, variableStream);
+        code.Emit(OpCodes.Call, typeof(MemoryStream).GetMethod(nameof(MemoryStream.ToArray))!);
+        // Dispose the stream.
+        code.Emit(OpCodes.Ldloc, variableStream);
+        code.Emit(OpCodes.Call, typeof(MemoryStream).GetMethod(nameof(MemoryStream.Dispose))!);
+        code.Emit(OpCodes.Ret);
     }
 }

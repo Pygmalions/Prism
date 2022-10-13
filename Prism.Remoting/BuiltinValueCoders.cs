@@ -1,5 +1,3 @@
-using System.Buffers;
-using System.IO.Pipelines;
 using System.Reflection.Emit;
 using System.Text;
 using System.Reflection;
@@ -8,120 +6,118 @@ namespace Prism.Remoting;
 
 public static class BuiltinValueCoders
 {
-    private static readonly MethodInfo PipelineWriterMethod =
-        typeof(BuiltinValueCoders).GetMethod(nameof(WriteToPipeline))!;
+    private static readonly MethodInfo StreamWriterMethod =
+        typeof(BuiltinValueCoders).GetMethod(nameof(WriteToStream))!;
     
-    private static readonly MethodInfo PipelineReaderMethod = 
-        typeof(BuiltinValueCoders).GetMethod(nameof(ReadFromPipeline))!;
-    
-    private static void WriteToPipeline(PipeWriter writer, byte[] data)
+    private static readonly MethodInfo StreamReaderMethod = 
+        typeof(BuiltinValueCoders).GetMethod(nameof(ReadFromStream))!;
+
+    private static void WriteToStream(Stream stream, byte[] data)
     {
-        writer.Write(data);
-    }
-    
-    private static byte[] ReadFromPipeline(PipeReader reader, int length)
-    {
-        var result = reader.ReadAtLeastAsync(length);
-        while (!result.IsCompleted)
-            Thread.Yield();
-        var sequence = result.Result.Buffer.Slice(0, length);
-        reader.AdvanceTo(sequence.Start, sequence.End);
-        return sequence.ToArray();
+        stream.Write(data);
     }
 
-    private static DataEncoder CreateValueEncoder<TValue>()
+    private static byte[] ReadFromStream(Stream stream, int length)
     {
-        return (code, writer) =>
+        var buffer = new byte[length];
+        while (length > 0)
+            length -= stream.Read(buffer, buffer.Length - length, length);
+        return buffer;
+    }
+
+    private static DataCoder CreateValueEncoder<TValue>()
+    {
+        return (code, stream) =>
         {
             var data = code.DeclareLocal(typeof(byte[]));
             code.Emit(OpCodes.Call, 
                 typeof(BitConverter).GetMethod(nameof(BitConverter.GetBytes), new [] {typeof(TValue)})!);
             code.Emit(OpCodes.Stloc, data);
             
-            code.Emit(OpCodes.Ldloc, writer);
+            code.Emit(OpCodes.Ldloc, stream);
             code.Emit(OpCodes.Ldloc, data);
-            code.Emit(OpCodes.Call, PipelineWriterMethod);
+            code.Emit(OpCodes.Call, StreamWriterMethod);
         };
     }
     
-    private static DataDecoder CreateValueDecoder(string method, int size)
+    private static DataCoder CreateValueDecoder(string method, int size)
     {
-        return (code, reader) =>
+        return (code, stream) =>
         {
-            code.Emit(OpCodes.Ldloc, reader);
+            code.Emit(OpCodes.Ldloc, stream);
             code.Emit(OpCodes.Ldc_I4, size);
-            code.Emit(OpCodes.Call, PipelineReaderMethod);
+            code.Emit(OpCodes.Call, StreamReaderMethod);
             code.Emit(OpCodes.Ldc_I4_0);
             code.Emit(OpCodes.Call, 
                 typeof(BitConverter).GetMethod(method, new [] {typeof(byte[]), typeof(int)})!);
         };
     }
 
-    [DataCoder(typeof(short))]
-    public static readonly DataEncoder ShortEncoder = CreateValueEncoder<short>();
+    [DataCoder(typeof(short), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder ShortEncoder = CreateValueEncoder<short>();
 
-    [DataCoder(typeof(short))]
-    public static readonly DataDecoder ShortDecoder = 
+    [DataCoder(typeof(short), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder ShortDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToInt16), sizeof(short));
 
-    [DataCoder(typeof(int))]
-    public static readonly DataEncoder IntegerEncoder = CreateValueEncoder<int>();
+    [DataCoder(typeof(int), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder IntegerEncoder = CreateValueEncoder<int>();
     
-    [DataCoder(typeof(int))]
-    public static readonly DataDecoder IntegerDecoder = 
+    [DataCoder(typeof(int), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder IntegerDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToInt32), sizeof(int));
     
-    [DataCoder(typeof(long))]
-    public static readonly DataEncoder LongIntegerEncoder = CreateValueEncoder<long>();
+    [DataCoder(typeof(long), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder LongIntegerEncoder = CreateValueEncoder<long>();
     
-    [DataCoder(typeof(long))]
-    public static readonly DataDecoder LongIntegerDecoder = 
+    [DataCoder(typeof(long), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder LongIntegerDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToInt64), sizeof(long));
     
-    [DataCoder(typeof(ushort))]
-    public static readonly DataEncoder UnsignedShortEncoder = CreateValueEncoder<ushort>();
+    [DataCoder(typeof(ushort), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder UnsignedShortEncoder = CreateValueEncoder<ushort>();
 
-    [DataCoder(typeof(ushort))]
-    public static readonly DataDecoder UnsignedShortDecoder = 
+    [DataCoder(typeof(ushort), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder UnsignedShortDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToUInt16), sizeof(ushort));
 
-    [DataCoder(typeof(uint))]
-    public static readonly DataEncoder UnsignedIntegerEncoder = CreateValueEncoder<uint>();
+    [DataCoder(typeof(uint), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder UnsignedIntegerEncoder = CreateValueEncoder<uint>();
     
-    [DataCoder(typeof(uint))]
-    public static readonly DataDecoder UnsignedIntegerDecoder = 
+    [DataCoder(typeof(uint), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder UnsignedIntegerDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToUInt32), sizeof(uint));
     
-    [DataCoder(typeof(ulong))]
-    public static readonly DataEncoder UnsignedLongIntegerEncoder = CreateValueEncoder<ulong>();
+    [DataCoder(typeof(ulong), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder UnsignedLongIntegerEncoder = CreateValueEncoder<ulong>();
     
-    [DataCoder(typeof(ulong))]
-    public static readonly DataDecoder UnsignedLongIntegerDecoder = 
+    [DataCoder(typeof(ulong), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder UnsignedLongIntegerDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToUInt64), sizeof(ulong));
 
-    [DataCoder(typeof(float))]
-    public static readonly DataEncoder FloatEncoder = CreateValueEncoder<float>();
+    [DataCoder(typeof(float), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder FloatEncoder = CreateValueEncoder<float>();
     
-    [DataCoder(typeof(float))]
-    public static readonly DataDecoder FloatDecoder = 
+    [DataCoder(typeof(float), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder FloatDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToSingle), sizeof(float));
     
-    [DataCoder(typeof(double))]
-    public static readonly DataEncoder DoubleEncoder = CreateValueEncoder<double>();
+    [DataCoder(typeof(double), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder DoubleEncoder = CreateValueEncoder<double>();
     
-    [DataCoder(typeof(double))]
-    public static readonly DataDecoder DoubleDecoder = 
+    [DataCoder(typeof(double), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder DoubleDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToDouble), sizeof(double));
     
-    [DataCoder(typeof(char))]
-    public static readonly DataEncoder CharEncoder = CreateValueEncoder<char>();
+    [DataCoder(typeof(char), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder CharEncoder = CreateValueEncoder<char>();
     
-    [DataCoder(typeof(char))]
-    public static readonly DataDecoder CharDecoder = 
+    [DataCoder(typeof(char), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder CharDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToChar), sizeof(char));
 
-    [DataCoder(typeof(byte))] 
-    public static readonly DataEncoder ByteEncoder = (code, writer) =>
+    [DataCoder(typeof(byte), DataCoderAttribute.CoderType.Encoder)] 
+    public static readonly DataCoder ByteEncoder = (code, stream) =>
     {
         var data = code.DeclareLocal(typeof(byte));
         code.Emit(OpCodes.Stloc, data);
@@ -133,55 +129,55 @@ public static class BuiltinValueCoders
         code.Emit(OpCodes.Ldloc, data);
         code.Emit(OpCodes.Stelem);
         
-        code.Emit(OpCodes.Ldloc, writer);
-        code.Emit(OpCodes.Call, PipelineWriterMethod);
+        code.Emit(OpCodes.Ldloc, stream);
+        code.Emit(OpCodes.Call, StreamWriterMethod);
     };
     
-    [DataCoder(typeof(byte))]
-    public static readonly DataDecoder ByteDecoder = 
+    [DataCoder(typeof(byte), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder ByteDecoder = 
         CreateValueDecoder(nameof(BitConverter.ToChar), sizeof(char));
 
     
-    [DataCoder(typeof(string))]
-    public static readonly DataEncoder StringEncoder = (code, writer) =>
+    [DataCoder(typeof(string), DataCoderAttribute.CoderType.Encoder)]
+    public static readonly DataCoder StringEncoder = (code, stream) =>
     {
         var text = code.DeclareLocal(typeof(string));
         code.Emit(OpCodes.Stloc, text);
         
         // Write the string length into the data stream.
-        code.Emit(OpCodes.Ldloc, writer);
+        code.Emit(OpCodes.Ldloc, stream);
         code.Emit(OpCodes.Ldloc, text);
         code.Emit(OpCodes.Call, typeof(string).GetProperty(nameof(string.Length))!.GetMethod!);
         code.Emit(OpCodes.Call, 
             typeof(BitConverter).GetMethod(nameof(BitConverter.GetBytes), new [] {typeof(int)})!);
-        code.Emit(OpCodes.Call, PipelineWriterMethod);
+        code.Emit(OpCodes.Call, StreamWriterMethod);
         
         // Write the string bytes into the data stream.
-        code.Emit(OpCodes.Ldloc, writer);
+        code.Emit(OpCodes.Ldloc, stream);
         code.Emit(OpCodes.Call, typeof(Encoding).GetProperty(nameof(Encoding.UTF8))!.GetMethod!);
         code.Emit(OpCodes.Ldloc, text);
         code.Emit(OpCodes.Call, 
             typeof(Encoding).GetMethod(nameof(Encoding.GetBytes), new [] {typeof(string)})!);
-        code.Emit(OpCodes.Call, PipelineWriterMethod);
+        code.Emit(OpCodes.Call, StreamWriterMethod);
     };
     
-    [DataCoder(typeof(string))]
-    public static readonly DataDecoder StringDecoder = (code, reader) =>
+    [DataCoder(typeof(string), DataCoderAttribute.CoderType.Decoder)]
+    public static readonly DataCoder StringDecoder = (code, stream) =>
     {
         // Get the length of the text.
         var length = code.DeclareLocal(typeof(int));
-        code.Emit(OpCodes.Ldloc, reader);
+        code.Emit(OpCodes.Ldloc, stream);
         code.Emit(OpCodes.Ldc_I4, sizeof(int));
-        code.Emit(OpCodes.Call, PipelineReaderMethod);
+        code.Emit(OpCodes.Call, StreamReaderMethod);
         code.Emit(OpCodes.Ldc_I4_0);
         code.Emit(OpCodes.Call, 
             typeof(BitConverter).GetMethod(nameof(BitConverter.ToInt32), new [] {typeof(byte[]), typeof(int)})!);
         code.Emit(OpCodes.Stloc, length);
         
         code.Emit(OpCodes.Call, typeof(Encoding).GetProperty(nameof(Encoding.UTF8))!.GetMethod!);
-        code.Emit(OpCodes.Ldloc, reader);
+        code.Emit(OpCodes.Ldloc, stream);
         code.Emit(OpCodes.Ldloc,length);
-        code.Emit(OpCodes.Call, PipelineReaderMethod);
+        code.Emit(OpCodes.Call, StreamReaderMethod);
         code.Emit(OpCodes.Call, 
             typeof(Encoding).GetMethod(nameof(Encoding.GetString), new [] {typeof(byte[])})!);
     };

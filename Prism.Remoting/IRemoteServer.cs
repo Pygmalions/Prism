@@ -11,5 +11,5 @@ public interface IRemoteServer
     /// </summary>
     /// <param name="data">Invocation data.</param>
     /// <returns>Invocation result data.</returns>
-    Memory<byte> HandleInvocation(Memory<byte> data);
+    byte[] HandleInvocation(byte[] data);
 }
