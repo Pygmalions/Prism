@@ -66,7 +66,7 @@ public class ClassContext
             TypeAttributes.BeforeFieldInit);
         Builder.SetParent(baseClass);
         
-        Initializer = Builder.DefineMethod("_Nebula_Initialize",
+        Initializer = Builder.DefineMethod("_Prism_Initialize",
             MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.NewSlot |
             MethodAttributes.SpecialName,
             CallingConventions.Standard,
