@@ -38,7 +38,6 @@ generator.RegisterPlugin(new DecorationPlugin());
 ```
 Secondly, create a instance of the proxy class:
 ```c#
-// Create a 
 var instance = Activator.CreateInstance(generator.GetProxy<SampleObject>());
 ```
 Convert this instance into the original type and the ```IDecorated``` interface separately:
