@@ -80,6 +80,9 @@ public class Generator
             switch (attribute.Mode)
             {
                 case TriggerMode.ByAttribute:
+                    if (!attribute.Trigger.IsSubclassOf(typeof(Attribute)))
+                        throw new InvalidOperationException(
+                            $"Trigger type {attribute.Trigger} in attribute mode is not an attribute class.");
                     AddToGroup(_pluginsByAttribute, attribute.Trigger, plugin);
                     break;
                 case TriggerMode.ByHierarchy:
