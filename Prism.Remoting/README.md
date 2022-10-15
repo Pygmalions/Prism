@@ -8,6 +8,7 @@ and a client generator to generate client proxies.
 - [X] Server generator.
 - [X] Client generator.
 - [X] Built-in coders for asic value type.
+- [ ] Coder generator for arrays of basic value types.
 - [ ] Coder generator for structure types which composed of basic value types.
 - [ ] Support async methods.
 
