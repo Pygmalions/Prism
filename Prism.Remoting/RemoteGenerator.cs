@@ -80,7 +80,7 @@ public abstract class RemoteGenerator
 
     protected void ApplyDecoder(Type data, ILGenerator code, LocalBuilder stream)
     {
-        if (!_encoders.TryGetValue(data, out var decoder))
+        if (!_decoders.TryGetValue(data, out var decoder))
             throw new InvalidOperationException($"Missing data decoder for {data}.");    
         decoder(code, stream);
     }

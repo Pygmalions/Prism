@@ -27,7 +27,7 @@ public class RemoteClientGenerator : RemoteGenerator
 
     private static FieldBuilder ImplementInterface(TypeBuilder builder)
     {
-        builder.AddInterfaceImplementation(typeof(ITransporter));
+        builder.AddInterfaceImplementation(typeof(IRemoteClient));
         var transporterField = 
             builder.DefineField("_Prism_Remote_Transporter", typeof(ITransporter), FieldAttributes.Family);
         
@@ -49,14 +49,14 @@ public class RemoteClientGenerator : RemoteGenerator
             MethodAttributes.SpecialName | MethodAttributes.Virtual,
             CallingConventions.Standard,
             typeof(void), new []{typeof(ITransporter)});
-        builder.DefineMethodOverride(transporterGetterMethod,
+        builder.DefineMethodOverride(transporterSetterMethod,
             typeof(IRemoteClient).GetProperty(nameof(IRemoteClient.Transporter))!.SetMethod!);
-        var setterCode = transporterGetterMethod.GetILGenerator();
+        var setterCode = transporterSetterMethod.GetILGenerator();
         
-        getterCode.Emit(OpCodes.Ldarg_0);
-        getterCode.Emit(OpCodes.Ldarg_1);
-        getterCode.Emit(OpCodes.Stfld, transporterField);
-        getterCode.Emit(OpCodes.Ret);
+        setterCode.Emit(OpCodes.Ldarg_0);
+        setterCode.Emit(OpCodes.Ldarg_1);
+        setterCode.Emit(OpCodes.Stfld, transporterField);
+        setterCode.Emit(OpCodes.Ret);
         
         return transporterField;
     }
@@ -117,15 +117,19 @@ public class RemoteClientGenerator : RemoteGenerator
         var variableStream = code.DeclareLocal(typeof(MemoryStream));
         code.Emit(OpCodes.Newobj, typeof(MemoryStream).GetConstructor(Type.EmptyTypes)!);
         code.Emit(OpCodes.Stloc, variableStream);
+
+        // Push the meta token of the method into the stream.
+        code.Emit(OpCodes.Ldc_I4, baseMethod.MetadataToken);
+        ApplyEncoder(typeof(int), code, variableStream);
         
         // Encode parameters into invocation data package.
-        for (var parameterIndex = 0; parameterIndex <= parameters.Length; ++parameterIndex)
+        for (var parameterIndex = 0; parameterIndex < parameters.Length; ++parameterIndex)
         {
             // Skip parameter 'this'.
             code.Emit(OpCodes.Ldarg, parameterIndex + 1);
             ApplyEncoder(parameters[parameterIndex], code, variableStream);
         }
-            
+
         // Get transporter.
         code.Emit(OpCodes.Ldarg_0);
         code.Emit(OpCodes.Callvirt, 
@@ -137,11 +141,11 @@ public class RemoteClientGenerator : RemoteGenerator
         
         // Transport invocation data and get return value data.
         code.Emit(OpCodes.Callvirt, typeof(ITransporter).GetMethod(nameof(ITransporter.Transport))!);
-        
+
         // Re-initialize the stream.
         code.Emit(OpCodes.Newobj, typeof(MemoryStream).GetConstructor(new [] {typeof(byte[])})!);
-        code.Emit(OpCodes.Ldloc, variableStream);
-        
+        code.Emit(OpCodes.Stloc, variableStream);
+
         // Decode return value.
         if (baseMethod.ReturnType != typeof(void))
         {
@@ -174,6 +178,8 @@ public class RemoteClientGenerator : RemoteGenerator
         {
             if (enableMethodCheck && method.GetCustomAttribute<RemoteAttribute>() == null)
                 continue;
+            if (!method.IsAbstract && !method.IsVirtual)
+                throw new Exception("Remote methods must be virtual or abstract.");
             GenerateRemoteMethod(builder, method);
         }
 

@@ -5,6 +5,7 @@ using Prism.Framework.Builders;
 
 namespace Prism.Remoting;
 
+[TriggerBy(typeof(RemoteAttribute))]
 public class RemotingPlugin : RemoteGenerator, IProxyPlugin
 {
     public void Modify(ClassContext context)
@@ -15,10 +16,21 @@ public class RemotingPlugin : RemoteGenerator, IProxyPlugin
             MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.NewSlot |
             MethodAttributes.SpecialName | MethodAttributes.Virtual,
             CallingConventions.Standard,
-            typeof(Memory<byte>), new[] { typeof(Memory<byte>) });
+            typeof(byte[]), new[] { typeof(byte[]) });
         context.Builder.DefineMethodOverride(handlerMethod,
             typeof(IRemoteServer).GetMethod(nameof(IRemoteServer.HandleInvocation))!);
         var code = handlerMethod.GetILGenerator();
+
+        // Construct a stream from the invocation data.
+        var variableStream = code.DeclareLocal(typeof(MemoryStream));
+        code.Emit(OpCodes.Ldarg_1);
+        code.Emit(OpCodes.Newobj, typeof(MemoryStream).GetConstructor(new []{typeof(byte[])})!);
+        code.Emit(OpCodes.Stloc, variableStream);
+
+        // Decode integer method token.
+        var variableToken = code.DeclareLocal(typeof(int));
+        ApplyDecoder(typeof(int), code, variableStream);
+        code.Emit(OpCodes.Stloc, variableToken);
 
         // Collect all remote callable methods, organize them with their meta data token.
         var methods = new List<(MethodInfo Method, Label Target)>();
@@ -29,17 +41,6 @@ public class RemotingPlugin : RemoteGenerator, IProxyPlugin
                 continue;
             methods.Add((method, code.DefineLabel()));
         }
-
-        // Construct a stream from the invocation data.
-        var variableStream = code.DeclareLocal(typeof(MemoryStream));
-        code.Emit(OpCodes.Ldloc_1);
-        code.Emit(OpCodes.Newobj, typeof(MemoryStream).GetConstructor(new []{typeof(byte[])})!);
-        code.Emit(OpCodes.Stloc, variableStream);
-
-        // Decode integer method token.
-        var variableToken = code.DeclareLocal(typeof(int));
-        ApplyDecoder(typeof(int), code, variableStream);
-        code.Emit(OpCodes.Stloc, variableToken);
 
         // Generate code of method selecting branches.
         foreach (var (method, label) in methods)

@@ -2,7 +2,8 @@
 
 public static class Remote
 {
-    private static readonly Lazy<RemoteClientGenerator> SharedGenerator = new();
+    private static readonly Lazy<RemoteClientGenerator> SharedGenerator = 
+        new(() => new RemoteClientGenerator());
 
     public static void AddEncoder(Type dataType, DataCoder coder) 
         => SharedGenerator.Value.AddEncoder(dataType, coder);
