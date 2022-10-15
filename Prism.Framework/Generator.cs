@@ -72,9 +72,11 @@ public class Generator
 
             group.Add(instance);
         }
-        
+
+        var added = false;
         foreach (var attribute in plugin.GetType().GetCustomAttributes<TriggerByAttribute>())
         {
+            added = true;
             switch (attribute.Mode)
             {
                 case TriggerMode.ByAttribute:
@@ -87,6 +89,10 @@ public class Generator
                     throw new InvalidEnumArgumentException();
             }
         }
+
+        if (!added)
+            throw new InvalidOperationException(
+                $"A valid plugin must have {nameof(TriggerByAttribute)} marked on it.");
     }
 
     /// <summary>
