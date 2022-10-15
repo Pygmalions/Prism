@@ -13,4 +13,8 @@ public static class GeneratorHelper
     /// </exception>
     public static Type GetProxy<TClass>(this Generator generator) where TClass : class
         => generator.GetProxy(typeof(TClass));
+
+    public static TClass New<TClass>(this Generator generator, params object[] arguments) where TClass : class
+        => Activator.CreateInstance(generator.GetProxy(typeof(TClass)), arguments) as TClass ??
+           throw new Exception($"Failed to instantiate a proxy instance of {typeof(TClass)}.");
 }
