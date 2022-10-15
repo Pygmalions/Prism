@@ -5,9 +5,9 @@ and a client generator to generate client proxies.
 
 ## Road Map
 
-- [X] **(Awaiting Unit Test)** Server generator.
-- [X] **(Awaiting Unit Test)** Client generator.
-- [X] **(Awaiting Unit Test)** Built-in coders for asic value type.
+- [X] Server generator.
+- [X] Client generator.
+- [X] Built-in coders for asic value type.
 - [ ] Coder generator for structure types which composed of basic value types.
 - [ ] Support async methods.
 
