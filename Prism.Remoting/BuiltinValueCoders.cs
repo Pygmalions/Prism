@@ -1,6 +1,5 @@
 using System.Reflection.Emit;
 using System.Text;
-using System.Reflection;
 
 namespace Prism.Remoting;
 
@@ -18,7 +17,7 @@ public static class BuiltinValueCoders
             code.Emit(OpCodes.Call, 
                 typeof(BitConverter).GetMethod(nameof(BitConverter.GetBytes), new [] {typeof(TValue)})!);
             code.Emit(OpCodes.Ldloc, stream);
-            code.Emit(OpCodes.Call, DataCoderHelper.StreamWritingHelper);
+            code.Emit(OpCodes.Call, DataCoderTool.StreamWritingHelper);
         };
     }
     
@@ -28,7 +27,7 @@ public static class BuiltinValueCoders
         {
             code.Emit(OpCodes.Ldc_I4, size);
             code.Emit(OpCodes.Ldloc, stream);
-            code.Emit(OpCodes.Call, DataCoderHelper.StreamReadingHelper);
+            code.Emit(OpCodes.Call, DataCoderTool.StreamReadingHelper);
             code.Emit(OpCodes.Ldc_I4_0); // Start from index 0.
             code.Emit(OpCodes.Call, 
                 typeof(BitConverter).GetMethod(method, new [] {typeof(byte[]), typeof(int)})!);
@@ -112,7 +111,7 @@ public static class BuiltinValueCoders
         code.Emit(OpCodes.Stelem);
         
         code.Emit(OpCodes.Ldloc, stream);
-        code.Emit(OpCodes.Call, DataCoderHelper.StreamWritingHelper);
+        code.Emit(OpCodes.Call, DataCoderTool.StreamWritingHelper);
     };
     
     [DataCoder(typeof(byte), DataCoderAttribute.CoderType.Decoder)]
@@ -132,7 +131,7 @@ public static class BuiltinValueCoders
         code.Emit(OpCodes.Call, 
             typeof(BitConverter).GetMethod(nameof(BitConverter.GetBytes), new [] {typeof(int)})!);
         code.Emit(OpCodes.Ldloc, stream);
-        code.Emit(OpCodes.Call, DataCoderHelper.StreamWritingHelper);
+        code.Emit(OpCodes.Call, DataCoderTool.StreamWritingHelper);
         
         // Write the string bytes into the data stream.
         code.Emit(OpCodes.Call, typeof(Encoding).GetProperty(nameof(Encoding.UTF8))!.GetMethod!);
@@ -140,7 +139,7 @@ public static class BuiltinValueCoders
         code.Emit(OpCodes.Call, 
             typeof(Encoding).GetMethod(nameof(Encoding.GetBytes), new [] {typeof(string)})!);
         code.Emit(OpCodes.Ldloc, stream);
-        code.Emit(OpCodes.Call, DataCoderHelper.StreamWritingHelper);
+        code.Emit(OpCodes.Call, DataCoderTool.StreamWritingHelper);
     };
     
     [DataCoder(typeof(string), DataCoderAttribute.CoderType.Decoder)]
@@ -150,7 +149,7 @@ public static class BuiltinValueCoders
         var length = code.DeclareLocal(typeof(int));
         code.Emit(OpCodes.Ldc_I4, sizeof(int));
         code.Emit(OpCodes.Ldloc, stream);
-        code.Emit(OpCodes.Call, DataCoderHelper.StreamReadingHelper);
+        code.Emit(OpCodes.Call, DataCoderTool.StreamReadingHelper);
         code.Emit(OpCodes.Ldc_I4_0);
         code.Emit(OpCodes.Call, 
             typeof(BitConverter).GetMethod(nameof(BitConverter.ToInt32), new [] {typeof(byte[]), typeof(int)})!);
@@ -159,7 +158,7 @@ public static class BuiltinValueCoders
         code.Emit(OpCodes.Call, typeof(Encoding).GetProperty(nameof(Encoding.UTF8))!.GetMethod!);
         code.Emit(OpCodes.Ldloc,length);
         code.Emit(OpCodes.Ldloc, stream);
-        code.Emit(OpCodes.Call, DataCoderHelper.StreamReadingHelper);
+        code.Emit(OpCodes.Call, DataCoderTool.StreamReadingHelper);
         code.Emit(OpCodes.Call, 
             typeof(Encoding).GetMethod(nameof(Encoding.GetString), new [] {typeof(byte[])})!);
     };

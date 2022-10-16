@@ -59,14 +59,13 @@ public class RemotingPlugin : RemoteGenerator, IProxyPlugin
 
             // Load 'this' onto the stack.
             code.Emit(OpCodes.Ldloc_0);
-            
             // Decode parameters from data package.
             foreach (var parameter in method.GetParameters())
                 ApplyDecoder(parameter.ParameterType, code, variableStream);
             
             // Invoke method.
-            code.Emit(OpCodes.Callvirt, method);
-            
+            code.Emit(OpCodes.Call, method);
+
             // Dispose the stream.
             code.Emit(OpCodes.Ldloc, variableStream);
             code.Emit(OpCodes.Call, typeof(MemoryStream).GetMethod(nameof(MemoryStream.Dispose))!);
@@ -76,7 +75,14 @@ public class RemotingPlugin : RemoteGenerator, IProxyPlugin
             
             // Encode returning value.
             if (method.ReturnType != typeof(void))
+            {
+                // Wait the result if the return value is a task.
+                if (method.ReturnType.IsGenericType && 
+                    (method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>) ||
+                    method.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>)))
+                    code.Emit(OpCodes.Call, method.ReturnType.GetProperty("Result")!.GetMethod!);
                 ApplyEncoder(method.ReturnType, code, variableStream);
+            }
             
             // Jump to returning process.
             code.Emit(OpCodes.Br, labelReturning);

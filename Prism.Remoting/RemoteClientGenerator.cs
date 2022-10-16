@@ -150,6 +150,14 @@ public class RemoteClientGenerator : RemoteGenerator
         if (baseMethod.ReturnType != typeof(void))
         {
             ApplyDecoder(baseMethod.ReturnType, code, variableStream);
+
+            // Construct a Task from TaskFactory.
+            if (baseMethod.ReturnType.IsGenericType && baseMethod.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
+                code.Emit(OpCodes.Call, baseMethod.ReturnType.GetMethod("FromResult")!);
+            // Construct a ValueTask.
+            if (baseMethod.ReturnType.IsGenericType && baseMethod.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>))
+                code.Emit(OpCodes.Newobj,
+                    baseMethod.ReturnType.GetConstructor(new [] {baseMethod.ReturnType.GetGenericArguments()[0]})!);
         }
         
         code.Emit(OpCodes.Ret);

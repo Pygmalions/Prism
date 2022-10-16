@@ -71,18 +71,82 @@ public abstract class RemoteGenerator
         }
     }
 
-    protected void ApplyEncoder(Type data, ILGenerator code, LocalBuilder stream)
+    protected DataCoder RegisterCustomEncoder(Type dataType, CustomCoderAttribute attribute)
     {
-        if (!_encoders.TryGetValue(data, out var encoder))
-            throw new InvalidOperationException($"Missing data encoder for {data}.");    
-        encoder(code, stream);
+        var method = dataType.GetMethod(attribute.EncoderName, BindingFlags.Public | BindingFlags.Static)
+                     ?? throw new Exception(
+                         "Can not find the public static encoder method" +
+                         $" {attribute.EncoderName} in {dataType}.");
+        var coder = DataCoderTool.CreateDecoderFromMethod(method);
+        _encoders[dataType] = coder;
+        return coder;
+    }
+    
+    protected DataCoder RegisterCustomDecoder(Type dataType, CustomCoderAttribute attribute)
+    {
+        var method = dataType.GetMethod(attribute.DecoderName, BindingFlags.Public | BindingFlags.Static)
+                     ?? throw new Exception(
+                         "Can not find the public static decoder method" +
+                         $" {attribute.DecoderName} in {dataType}.");
+        var coder = DataCoderTool.CreateDecoderFromMethod(method);
+        _decoders[dataType] = coder;
+        return coder;
     }
 
-    protected void ApplyDecoder(Type data, ILGenerator code, LocalBuilder stream)
+    protected DataCoder RegisterArrayEncoder(Type dataType)
     {
-        if (!_decoders.TryGetValue(data, out var decoder))
-            throw new InvalidOperationException($"Missing data decoder for {data}.");    
-        decoder(code, stream);
+        if (dataType.GetElementType() is not {} elementType)
+            throw new InvalidOperationException($"The specified data type {dataType} is not an array type.");
+        var coder = DataCoderTool.CreateArrayEncoder(elementType, GetEncoder(elementType));
+        _encoders[dataType] = coder;
+        return coder;
+    }
+    
+    protected DataCoder RegisterArrayDecoder(Type dataType)
+    {
+        if (dataType.GetElementType() is not {} elementType)
+            throw new InvalidOperationException($"The specified data type {dataType} is not an array type.");
+        var coder = DataCoderTool.CreateArrayDecoder(elementType, GetDecoder(elementType));
+        _decoders[dataType] = coder;
+        return coder;
+    }
+
+    public DataCoder GetEncoder(Type dataType)
+    {
+        if (_encoders.TryGetValue(dataType, out var encoder))
+            return encoder;
+        if (dataType.GetCustomAttribute<CustomCoderAttribute>() is { } attribute)
+            return RegisterCustomEncoder(dataType, attribute) ??
+                throw new InvalidOperationException(
+                    "Can not find a suitable public static encoder method" +
+                    $" on {dataType} which is marked with a {nameof(CustomCoderAttribute)}.");
+        if (dataType.IsArray)
+            return RegisterArrayEncoder(dataType);
+        throw new InvalidOperationException($"Missing data encoder for {dataType}.");
+    }
+
+    public DataCoder GetDecoder(Type dataType)
+    {
+        if (_decoders.TryGetValue(dataType, out var decoder))
+            return decoder;
+        if (dataType.GetCustomAttribute<CustomCoderAttribute>() is { } attribute)
+            return RegisterCustomDecoder(dataType, attribute) ??
+                throw new InvalidOperationException(
+                    "Can not find a suitable public static decoder method" +
+                    $" on {dataType} which is marked with a {nameof(CustomCoderAttribute)}.");
+        if (dataType.IsArray)
+            return RegisterArrayDecoder(dataType);
+        throw new InvalidOperationException($"Missing data decoder for {dataType}.");
+    }
+
+    protected void ApplyEncoder(Type dataType, ILGenerator code, LocalBuilder stream)
+    {
+        GetEncoder(dataType)(code, stream);
+    }
+
+    protected void ApplyDecoder(Type dataType, ILGenerator code, LocalBuilder stream)
+    {
+        GetDecoder(dataType)(code, stream);
     }
     
     protected RemoteGenerator()
