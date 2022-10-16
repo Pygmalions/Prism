@@ -68,3 +68,11 @@ It is a heavyweight yet comprehensive framework, including but not limited to AO
 
 [gRPC](https://github.com/grpc/grpc): A widely used high-performance RPC framework. 
 It support a large range of programming languages and operating systems.
+
+## Serialization
+
+Since the Serialization plugin will not be on the road map in the near future,
+you may need serialization tools to use along with our Remoting plugin.
+
+[protobuf-net](https://github.com/protobuf-net/protobuf-net): A C# wrapper of gRPC. 
+It is designed to be convenient to use for C# developers. By simply add the 'ProtoContract' attribute to a class can make it serializable.
