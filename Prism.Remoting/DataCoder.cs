@@ -108,7 +108,7 @@ public static class DataCoderTool
         return method.CreateDelegate<Func<MemoryStream, TType>>();
     }
 
-    public static DataCoder CreateArrayEncoder(Type elementType, DataCoder valueEncoder)
+    public static DataCoder CreateArrayEncoder(Type elementType, DataCoder elementEncoder)
     {
         return (code, stream) =>
         {
@@ -146,7 +146,7 @@ public static class DataCoderTool
             code.Emit(OpCodes.Ldelem);
 
             // Encode a value into the stream.
-            valueEncoder(code, stream);
+            elementEncoder(code, stream);
             
             // index += 1;
             code.Emit(OpCodes.Ldloc, variableIndex);
@@ -161,7 +161,7 @@ public static class DataCoderTool
         };
     }
 
-    public static DataCoder CreateArrayDecoder(Type elementType, DataCoder valueDecoder)
+    public static DataCoder CreateArrayDecoder(Type elementType, DataCoder elementDecoder)
     {
         return (code, stream) =>
         {
@@ -194,7 +194,7 @@ public static class DataCoderTool
             // Decode and store the element.
             code.Emit(OpCodes.Ldloc, variableArray);
             code.Emit(OpCodes.Ldloc, variableIndex);
-            valueDecoder(code, stream);
+            elementDecoder(code, stream);
             code.Emit(OpCodes.Stelem);
 
             // index += 1;
@@ -207,6 +207,53 @@ public static class DataCoderTool
             code.Emit(OpCodes.Br, labelBegin);
             
             code.MarkLabel(labelFinish);
+        };
+    }
+
+    public static DataCoder CreateTaskEncoder(Type elementType, DataCoder elementEncoder)
+    {
+        return (code, stream) =>
+        {
+            code.Emit(OpCodes.Call, 
+                typeof(Task<>).MakeGenericType(elementType).GetProperty("Result")!.GetMethod!);
+            elementEncoder(code, stream);
+        };
+    }
+    
+    public static DataCoder CreateTaskDecoder(Type elementType, DataCoder elementDecoder)
+    {
+        return (code, stream) =>
+        {
+            elementDecoder(code, stream);
+            code.Emit(
+                OpCodes.Call, typeof(Task).GetMethod("FromResult")!.MakeGenericMethod(elementType));
+        };
+    }
+
+    public static DataCoder CreateValueTaskEncoder(Type elementType, DataCoder elementEncoder)
+    {
+        return (code, stream) =>
+        {
+            var typeValueTask = typeof(ValueTask<>).MakeGenericType(elementType);
+            var variableValueTask = code.DeclareLocal(typeValueTask);
+            code.Emit(OpCodes.Stloc, variableValueTask);
+            // To invoke a function on a value type, the address of the value rather than the value itself is needed.
+            code.Emit(OpCodes.Ldloca, variableValueTask);
+            var taskConverter = typeValueTask.GetMethod("AsTask")!;
+            code.Emit(OpCodes.Call, taskConverter);
+            code.Emit(OpCodes.Callvirt, taskConverter.ReturnType.GetProperty("Result")!.GetMethod!);
+            elementEncoder(code, stream);
+        };
+    }
+
+    public static DataCoder CreateValueTaskDecoder(Type elementType, DataCoder elementDecoder)
+    {
+        return (code, stream) =>
+        {
+            elementDecoder(code, stream);
+            code.Emit(OpCodes.Newobj,
+                typeof(ValueTask<>).MakeGenericType(elementType)
+                    .GetConstructor(new [] {elementType})!);
         };
     }
     

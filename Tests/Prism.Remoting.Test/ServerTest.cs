@@ -48,4 +48,38 @@ public class ServerTest
         var subValue = BitConverter.ToInt32(subResult);
         Assert.AreEqual(2, subValue);
     }
+    
+    [Test]
+    public void HandleTaskInvocation()
+    {
+        var instance = _generator.New<SampleObject>();
+        var server = instance.As<IRemoteServer>();
+        
+        var addStream = new MemoryStream();
+        addStream.Write(BitConverter.GetBytes(typeof(SampleObject).GetMethod(nameof(SampleObject.AddAsTask))!.MetadataToken));
+        addStream.Write(BitConverter.GetBytes(1));
+        addStream.Write(BitConverter.GetBytes(2));
+        addStream.Position = 0;
+        
+        var addResult = server.HandleInvocation(addStream.ToArray());
+        var addValue = BitConverter.ToInt32(addResult);
+        Assert.AreEqual(3, addValue);
+    }
+    
+    [Test]
+    public void HandleValueTaskInvocation()
+    {
+        var instance = _generator.New<SampleObject>();
+        var server = instance.As<IRemoteServer>();
+        
+        var addStream = new MemoryStream();
+        addStream.Write(BitConverter.GetBytes(typeof(SampleObject).GetMethod(nameof(SampleObject.AddAsValueTask))!.MetadataToken));
+        addStream.Write(BitConverter.GetBytes(1));
+        addStream.Write(BitConverter.GetBytes(2));
+        addStream.Position = 0;
+        
+        var addResult = server.HandleInvocation(addStream.ToArray());
+        var addValue = BitConverter.ToInt32(addResult);
+        Assert.AreEqual(3, addValue);
+    }
 }

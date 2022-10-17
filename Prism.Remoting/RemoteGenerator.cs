@@ -122,7 +122,16 @@ public abstract class RemoteGenerator
                     $" on {dataType} which is marked with a {nameof(CustomCoderAttribute)}.");
         if (dataType.IsArray)
             return RegisterArrayEncoder(dataType);
-        throw new InvalidOperationException($"Missing data encoder for {dataType}.");
+        return dataType.IsGenericType switch
+        {
+            true when dataType.GetGenericTypeDefinition() == typeof(Task<>) => 
+                DataCoderTool.CreateTaskEncoder(dataType.GetGenericArguments()[0], 
+                    GetEncoder(dataType.GetGenericArguments()[0])),
+            true when dataType.GetGenericTypeDefinition() == typeof(ValueTask<>) =>
+                DataCoderTool.CreateValueTaskEncoder(dataType.GetGenericArguments()[0], 
+                    GetEncoder(dataType.GetGenericArguments()[0])),
+            _ => throw new InvalidOperationException($"Missing data encoder for {dataType}.")
+        };
     }
 
     public DataCoder GetDecoder(Type dataType)
@@ -136,7 +145,16 @@ public abstract class RemoteGenerator
                     $" on {dataType} which is marked with a {nameof(CustomCoderAttribute)}.");
         if (dataType.IsArray)
             return RegisterArrayDecoder(dataType);
-        throw new InvalidOperationException($"Missing data decoder for {dataType}.");
+        return dataType.IsGenericType switch
+        {
+            true when dataType.GetGenericTypeDefinition() == typeof(Task<>) => 
+                DataCoderTool.CreateTaskDecoder(dataType.GetGenericArguments()[0], 
+                    GetDecoder(dataType.GetGenericArguments()[0])),
+            true when dataType.GetGenericTypeDefinition() == typeof(ValueTask<>) =>
+                DataCoderTool.CreateValueTaskDecoder(dataType.GetGenericArguments()[0], 
+                    GetDecoder(dataType.GetGenericArguments()[0])),
+            _ => throw new InvalidOperationException($"Missing data decoder for {dataType}.")
+        };
     }
 
     protected void ApplyEncoder(Type dataType, ILGenerator code, LocalBuilder stream)

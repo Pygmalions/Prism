@@ -75,15 +75,8 @@ public class RemotingPlugin : RemoteGenerator, IProxyPlugin
             
             // Encode returning value.
             if (method.ReturnType != typeof(void))
-            {
-                // Wait the result if the return value is a task.
-                if (method.ReturnType.IsGenericType && 
-                    (method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>) ||
-                    method.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>)))
-                    code.Emit(OpCodes.Call, method.ReturnType.GetProperty("Result")!.GetMethod!);
                 ApplyEncoder(method.ReturnType, code, variableStream);
-            }
-            
+
             // Jump to returning process.
             code.Emit(OpCodes.Br, labelReturning);
         }
@@ -97,5 +90,18 @@ public class RemotingPlugin : RemoteGenerator, IProxyPlugin
         code.Emit(OpCodes.Ldloc, variableStream);
         code.Emit(OpCodes.Call, typeof(MemoryStream).GetMethod(nameof(MemoryStream.Dispose))!);
         code.Emit(OpCodes.Ret);
+    }
+
+    public static ValueTask<int> CreateValue() => new(3);
+
+    public static void CheckTask(Task<int> a)
+    {
+        var q = CreateValue().AsTask().Result;
+        return;
+    }
+
+    public static void CheckValueTask(ValueTask<int> a)
+    {
+        return;
     }
 }
