@@ -4,19 +4,27 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+        <PackageId>Pygmalions.Prism.Remoting</PackageId>
+        <Title>Prism Remoting</Title>
+        <Authors>Pygmalions</Authors>
+        <Description>This plugin provides a mechnaism to encode and decode invocation contexts to support RPC.</Description>
+        <Copyright>MIT License.</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/Pygmalions/Prism/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Pygmalions/Prism/</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <PackageTags>RPC</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Prism.Framework\Prism.Framework.csproj" />
+      <None Update="Pygmalion.png">
+        <Pack>True</Pack>
+        <PackagePath>.</PackagePath>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Pygmalions.Prism.Framework" Version="1.1.0" />
     </ItemGroup>
 
 </Project>

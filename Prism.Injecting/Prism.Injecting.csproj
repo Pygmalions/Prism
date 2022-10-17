@@ -15,11 +15,8 @@
         <Authors>Pygmalions</Authors>
         <PackageIcon>Pygmalion.png</PackageIcon>
         <PackageTags>IoC</PackageTags>
+        <PackageVersion>1.0.1</PackageVersion>
     </PropertyGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Prism.Framework\Prism.Framework.csproj" />
-    </ItemGroup>
 
     <ItemGroup>
       <None Update="Pygmalion.png">
@@ -29,7 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Pygmalions.Prism.Framework" Version="1.0.0" />
+      <PackageReference Include="Pygmalions.Prism.Framework" Version="1.1.0" />
     </ItemGroup>
 
 </Project>
