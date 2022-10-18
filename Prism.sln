@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Remoting", "Prism.Rem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Remoting.Test", "Tests\Prism.Remoting.Test\Prism.Remoting.Test.csproj", "{8488D196-2AD1-4168-8566-36BFAC4E890D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism.Remoting.ProtobufSupport", "Prism.Remoting.ProtobufSupport\Prism.Remoting.ProtobufSupport.csproj", "{B6825EB8-A152-4023-A598-A573B39185A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{8488D196-2AD1-4168-8566-36BFAC4E890D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8488D196-2AD1-4168-8566-36BFAC4E890D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8488D196-2AD1-4168-8566-36BFAC4E890D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6825EB8-A152-4023-A598-A573B39185A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6825EB8-A152-4023-A598-A573B39185A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6825EB8-A152-4023-A598-A573B39185A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6825EB8-A152-4023-A598-A573B39185A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2CD0243D-0BDA-43BB-85D6-8EEA14AB4F11} = {E8473C1C-51D4-462F-B610-D505331CA4C9}
