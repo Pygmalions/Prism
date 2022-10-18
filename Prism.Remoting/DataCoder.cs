@@ -3,6 +3,15 @@ using System.Reflection.Emit;
 
 namespace Prism.Remoting;
 
+/// <summary>
+/// Data coders include <b>data encoders</b> and <b>data decoders</b>.
+/// LocalBuilder 'stream' represents a local variable of <see cref="MemoryStream"/>;
+/// <br/><br/>
+/// A data encoder should encode the data which is left on the evaluation stack into bytes,
+/// and write these bytes into the local variable 'stream'; <br/>
+/// A data decoder should read some bytes from the local variable 'stream' and decode it into a data instance,
+/// and leave this instance on the evaluation stack.
+/// </summary>
 public delegate void DataCoder(ILGenerator code, LocalBuilder stream);
 
 public static class DataCoderTool

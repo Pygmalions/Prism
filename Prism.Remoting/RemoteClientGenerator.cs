@@ -11,8 +11,26 @@ namespace Prism.Remoting;
 /// <br/><br/>
 /// Currently, async methods are not supported.
 /// </summary>
-public class RemoteClientGenerator : RemoteGenerator
+public class RemoteClientGenerator
 {
+    /// <summary>
+    /// Coder provider for this generator to use.
+    /// </summary>
+    public ICoderProvider CoderProvider { get; set; } = CoderManager.Global;
+    
+    private void ApplyEncoder(Type dataType, ILGenerator code, LocalBuilder stream)
+    {
+        CoderProvider.GetEncoder(dataType)(code, stream);
+    }
+
+    private void ApplyDecoder(Type dataType, ILGenerator code, LocalBuilder stream)
+    {
+        CoderProvider.GetDecoder(dataType)(code, stream);
+    }
+    
+    /// <summary>
+    /// Module of emitted remote clients.
+    /// </summary>
     private readonly ModuleBuilder _module;
 
     public RemoteClientGenerator(string? assemblyName = null, string? moduleName = null)
@@ -23,6 +41,9 @@ public class RemoteClientGenerator : RemoteGenerator
             .DefineDynamicModule(moduleName);
     }
     
+    /// <summary>
+    /// Cache of created proxies.
+    /// </summary>
     private readonly Dictionary<Type, Type> _proxies = new();
 
     private static FieldBuilder ImplementInterface(TypeBuilder builder)

@@ -1,10 +1,23 @@
 ﻿using System.Reflection;
-using System.Reflection.Emit;
 
 namespace Prism.Remoting;
 
-public abstract class RemoteGenerator
+public class CoderManager : ICoderProvider
 {
+    private static readonly Lazy<CoderManager> GlobalInstance = new(() =>
+    {
+        var instance = new CoderManager();
+        // Enable built-in value coders by default.
+        instance.AddStaticCoders(typeof(BuiltinValueCoders));
+        return instance;
+    });
+
+    /// <summary>
+    /// The shared global instance of coder manager.
+    /// The built-in coders are automatically enabled in this coder manager.
+    /// </summary>
+    public static CoderManager Global => GlobalInstance.Value;
+
     /// <summary>
     /// Registered data encoders.
     /// </summary>
@@ -35,7 +48,7 @@ public abstract class RemoteGenerator
         _decoders.Remove(dataType);
     }
 
-    public void AddCoderProvider(Type provider)
+    public void AddStaticCoders(Type provider)
     {
         foreach (var field in provider.GetFields())
         {
@@ -53,7 +66,7 @@ public abstract class RemoteGenerator
         }
     }
 
-    public void RemoveCoderProvider(Type provider)
+    public void RemoveStaticCoders(Type provider)
     {
         foreach (var field in provider.GetFields())
         {
@@ -155,21 +168,5 @@ public abstract class RemoteGenerator
                     GetDecoder(dataType.GetGenericArguments()[0])),
             _ => throw new InvalidOperationException($"Missing data decoder for {dataType}.")
         };
-    }
-
-    protected void ApplyEncoder(Type dataType, ILGenerator code, LocalBuilder stream)
-    {
-        GetEncoder(dataType)(code, stream);
-    }
-
-    protected void ApplyDecoder(Type dataType, ILGenerator code, LocalBuilder stream)
-    {
-        GetDecoder(dataType)(code, stream);
-    }
-    
-    protected RemoteGenerator()
-    {
-        // Enable built-in value coders by default.
-        AddCoderProvider(typeof(BuiltinValueCoders));
     }
 }

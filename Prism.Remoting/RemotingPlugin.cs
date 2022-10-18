@@ -6,8 +6,20 @@ using Prism.Framework.Builders;
 namespace Prism.Remoting;
 
 [TriggerBy(typeof(RemoteAttribute))]
-public class RemotingPlugin : RemoteGenerator, IProxyPlugin
+public class RemotingPlugin : IProxyPlugin
 {
+    public ICoderProvider CoderProvider { get; set; } = CoderManager.Global;
+    
+    private void ApplyEncoder(Type dataType, ILGenerator code, LocalBuilder stream)
+    {
+        CoderProvider.GetEncoder(dataType)(code, stream);
+    }
+
+    private void ApplyDecoder(Type dataType, ILGenerator code, LocalBuilder stream)
+    {
+        CoderProvider.GetDecoder(dataType)(code, stream);
+    }
+    
     public void Modify(ClassContext context)
     {
         context.Builder.AddInterfaceImplementation(typeof(IRemoteServer));
@@ -90,18 +102,5 @@ public class RemotingPlugin : RemoteGenerator, IProxyPlugin
         code.Emit(OpCodes.Ldloc, variableStream);
         code.Emit(OpCodes.Call, typeof(MemoryStream).GetMethod(nameof(MemoryStream.Dispose))!);
         code.Emit(OpCodes.Ret);
-    }
-
-    public static ValueTask<int> CreateValue() => new(3);
-
-    public static void CheckTask(Task<int> a)
-    {
-        var q = CreateValue().AsTask().Result;
-        return;
-    }
-
-    public static void CheckValueTask(ValueTask<int> a)
-    {
-        return;
     }
 }
