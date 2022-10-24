@@ -42,6 +42,8 @@ Prepare the container:
 ```c#
 var container = new InjectionContainer();
 container.Add(typeof(int), 3);
+// or, add a value creator to the container.
+container.Add(typeof(int), () => 3);
 ```
 Inject the object with the container:
 ```c#
