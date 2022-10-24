@@ -14,7 +14,17 @@ public class InjectionContainer : IContainer
     {
         if (!_injections.TryGetValue(category, out var group))
             return null;
-        return group.TryGetValue(id ?? "", out var instance) ? instance : null;
+        if (!group.TryGetValue(id ?? "", out var instance)) 
+            return null;
+        var instanceType = instance.GetType();
+        if (instanceType.IsGenericType && instanceType.GetGenericTypeDefinition() == typeof(Func<>) 
+                                       && instanceType.GetGenericArguments().Length == 1 
+                                       && instanceType.GetGenericArguments()[0].IsAssignableTo(category))
+        {
+            return instanceType.GetMethod("Invoke")!.Invoke(instance, Array.Empty<object?>());
+        }
+
+        return instance;
     }
 
     /// <summary>
