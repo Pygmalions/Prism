@@ -9,7 +9,7 @@ public class InjectionContainer : IContainer
     /// If this container can not find an injection,
     /// it will try to look up in containers in this chain.
     /// </summary>
-    public List<InjectionContainer> Chain;
+    public readonly List<InjectionContainer> Chain = new();
     
     /// <summary>
     /// Get the injection with the specified category and optional ID.
