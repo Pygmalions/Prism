@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using Prism.Remoting.Builtin;
 
 namespace Prism.Remoting;
 

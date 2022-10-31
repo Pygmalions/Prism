@@ -1,7 +1,7 @@
 using System.Reflection.Emit;
 using System.Text;
 
-namespace Prism.Remoting;
+namespace Prism.Remoting.Builtin;
 
 /// <summary>
 /// This static class provides coder implementations of basic value types.

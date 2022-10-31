@@ -43,7 +43,7 @@ public class DecorationPlugin : IProxyPlugin
             GenerateMethod(methodContext, proxy);
         }
         
-        foreach (var member in context.GetTriggerMember(typeof(DecorateAttribute)))
+        foreach (var (member, _) in context.GetTriggerMember(typeof(DecorateAttribute)))
         {
             switch (member)
             {

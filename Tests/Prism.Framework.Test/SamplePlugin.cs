@@ -6,7 +6,7 @@ namespace Prism.Framework.Test;
 [TriggerBy(typeof(SampleTrigger))]
 public class SamplePlugin : IProxyPlugin
 {
-    public IEnumerable<MemberInfo>? Members;
+    public IEnumerable<KeyValuePair<MemberInfo, Attribute>>? Members;
 
     public void Modify(ClassContext context)
     {

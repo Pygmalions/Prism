@@ -17,10 +17,7 @@ public class InjectionPlugin : IProxyPlugin
         // Check whether this class has an custom implementation of IInjectable.
         if (baseClass.IsAssignableTo(typeof(IInjectable)))
             return;
-        
-        var injectionFields = CollectInjectionFields(baseClass);
-        var injectionProperties = CollectInjectionProperties(baseClass);
-        
+
         // Generate code.
         context.Builder.AddInterfaceImplementation(typeof(IInjectable));
         
@@ -36,11 +33,30 @@ public class InjectionPlugin : IProxyPlugin
         var variableInjection = code.DeclareLocal(typeof(object));
         
         var exceptionConstructor = typeof(Exception).GetConstructor(new[] { typeof(string) })!;
-        
-        foreach (var (targetField, targetAttribute) in injectionFields)
+
+        foreach (var (member, attribute) in context.GetTriggerMember(typeof(InjectAttribute)))
         {
-            InsertQueryingCode(code, targetAttribute.Category ?? targetField.FieldType, targetAttribute.Id,
-                variableInjection);
+            if (attribute is not InjectAttribute injectAttribute)
+                continue;
+
+            FieldInfo? possibleField = null;
+            PropertyInfo? possibleProperty = null;
+            switch (member)
+            {
+                case FieldInfo field:
+                    possibleField = field;
+                    break;
+                case PropertyInfo property:
+                    possibleProperty = property;
+                    break;
+                default:
+                    throw new Exception($"Member {member.Name}({member.GetType()}) " +
+                                        $"of {baseClass} is not a valid injection target.");
+            }
+
+            var injectionCategory = (injectAttribute.Category ??
+                                     possibleField?.FieldType ?? possibleProperty?.PropertyType)!;
+            InsertQueryingCode(code, injectionCategory, injectAttribute.Id, variableInjection);
 
             // Check injection content, and skip the injection procedure if it is null.
             var labelInjectionEnd = code.DefineLabel();
@@ -51,45 +67,22 @@ public class InjectionPlugin : IProxyPlugin
             code.Emit(OpCodes.Brfalse, labelInjectionFailed);
             
             // Injection is not null, perform the injection.
-            InsertFieldInjectingCode(code, targetField, variableInjection);
+            if (possibleField != null)
+                InsertFieldInjectingCode(code, possibleField, variableInjection);
+            else if (possibleProperty != null)
+                InsertPropertyInjectingCode(code, possibleProperty, variableInjection);
             code.Emit(OpCodes.Br, labelInjectionEnd);
             
+            // Insert code to throw an exception if the necessary injection failed.
             code.MarkLabel(labelInjectionFailed);
-            if (targetAttribute.Necessary)
+            if (injectAttribute.Necessary)
             {
                 code.Emit(OpCodes.Ldstr, 
-                    $"Missing the injection for {targetField.Name} of {baseClass.Name} from the container.");
+                    $"Missing the injection for {member.Name} of {baseClass.Name} from the container.");
                 code.Emit(OpCodes.Newobj, exceptionConstructor);
                 code.Emit(OpCodes.Throw);
             }
             
-            code.MarkLabel(labelInjectionEnd);
-        }
-        
-        foreach (var (targetProperty, targetAttribute) in injectionProperties)
-        {
-            InsertQueryingCode(code, targetAttribute.Category ?? targetProperty.PropertyType, targetAttribute.Id,
-                variableInjection);
-
-            var labelInjectionEnd = code.DefineLabel();
-            var labelInjectionFailed = code.DefineLabel();
-            
-            // Check whether the injection is null or not, if it is null, then jump to the error handling.
-            code.Emit(OpCodes.Ldloc, variableInjection);
-            code.Emit(OpCodes.Brfalse, labelInjectionFailed);
-            
-            InsertPropertyInjectingCode(code, targetProperty, variableInjection);
-            code.Emit(OpCodes.Br, labelInjectionEnd);
-            
-            code.MarkLabel(labelInjectionFailed);
-            if (targetAttribute.Necessary)
-            {
-                code.Emit(OpCodes.Ldstr, 
-                    $"Missing the injection for {targetProperty.Name} of {baseClass.Name} from the container.");
-                code.Emit(OpCodes.Newobj, exceptionConstructor);
-                code.Emit(OpCodes.Throw);
-            }
-        
             code.MarkLabel(labelInjectionEnd);
         }
         
@@ -172,52 +165,5 @@ public class InjectionPlugin : IProxyPlugin
             typeof(IContainer).GetMethod(nameof(IContainer.Get))!);
         
         code.Emit(OpCodes.Stloc, variableInjection);
-    }
-    
-    /// <summary>
-    /// Collect all available fields which are marked with the injection attribute.
-    /// </summary>
-    /// <param name="baseClass">Reflection information to search in.</param>
-    /// <returns>List of available fields to inject and their corresponding injection attributes.</returns>
-    /// <exception cref="Exception">Throw if any init-only field is marked to inject.</exception>
-    private static List<(FieldInfo, InjectAttribute)> CollectInjectionFields(Type baseClass)
-    {
-        var injections = new List<(FieldInfo, InjectAttribute)>();
-        foreach (var field in baseClass.GetFields(BindingFlags.Instance | 
-                                                  BindingFlags.NonPublic | BindingFlags.Public ))
-        {
-            var attribute = field.GetCustomAttribute<InjectAttribute>();
-            if (attribute == null) continue;
-            if (field.IsInitOnly)
-                throw new Exception(
-                    $"Init-only field {field.Name} of {baseClass.Name} " +
-                    "can not be marked to be injected.");
-            injections.Add((field, attribute));
-        }
-
-        return injections;
-    }
-    
-    /// <summary>
-    /// Collect all available properties which are marked with the injection attribute.
-    /// </summary>
-    /// <param name="baseClass">Reflection information to search in.</param>
-    /// <returns>List of available properties to inject and their corresponding injection attributes.</returns>
-    /// <exception cref="Exception">Throw if any read-only property is marked to inject.</exception>
-    private static List<(PropertyInfo, InjectAttribute)> CollectInjectionProperties(Type baseClass)
-    {
-        var injections = new List<(PropertyInfo, InjectAttribute)>();
-        foreach (var property in baseClass.GetProperties(BindingFlags.Instance | 
-                                                         BindingFlags.NonPublic | BindingFlags.Public ))
-        {
-            var attribute = property.GetCustomAttribute<InjectAttribute>();
-            if (attribute == null) continue;
-            if (!property.CanWrite) 
-                throw new Exception($"Read-only property {property.Name} of {baseClass.Name} " +
-                                    "can not be marked to be injected.");;
-            injections.Add((property, attribute));
-        }
-
-        return injections;
     }
 }

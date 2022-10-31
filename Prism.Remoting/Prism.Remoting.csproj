@@ -14,19 +14,19 @@
         <RepositoryUrl>https://github.com/Pygmalions/Prism/</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <PackageTags>RPC</PackageTags>
-        <PackageVersion>1.1.1</PackageVersion>
+        <PackageVersion>1.1.2</PackageVersion>
         <PackageIcon>Pygmalion.png</PackageIcon>
     </PropertyGroup>
 
     <ItemGroup>
       <None Update="Pygmalion.png">
         <Pack>True</Pack>
-        <PackagePath></PackagePath>
+        <PackagePath>.</PackagePath>
       </None>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Pygmalions.Prism.Framework" Version="1.1.0" />
+      <PackageReference Include="Pygmalions.Prism.Framework" Version="1.2.0" />
     </ItemGroup>
 
 </Project>

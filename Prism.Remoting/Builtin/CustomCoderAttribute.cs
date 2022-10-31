@@ -1,4 +1,4 @@
-﻿namespace Prism.Remoting;
+﻿namespace Prism.Remoting.Builtin;
 
 /// <summary>
 /// Class marked with this attribute will enable custom encoder and decoder.

@@ -2,6 +2,7 @@
 using System.Reflection.Emit;
 using Prism.Framework;
 using Prism.Framework.Builders;
+using Prism.Remoting.Builtin;
 
 namespace Prism.Remoting;
 
@@ -47,7 +48,7 @@ public class RemotingPlugin : IProxyPlugin
         // Collect all remote callable methods, organize them with their meta data token.
         var methods = new List<(MethodInfo Method, Label Target)>();
 
-        foreach (var member in context.GetTriggerMember(typeof(RemoteAttribute)))
+        foreach (var (member, _) in context.GetTriggerMember(typeof(RemoteAttribute)))
         {
             if (member is not MethodInfo method)
                 continue;

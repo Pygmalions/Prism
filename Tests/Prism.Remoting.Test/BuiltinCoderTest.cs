@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection.Emit;
 using NUnit.Framework;
+using Prism.Remoting.Builtin;
 
 namespace Prism.Remoting.Test;
 

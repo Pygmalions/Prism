@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Prism.Remoting;
+namespace Prism.Remoting.Builtin;
 
 public class CoderManager : ICoderProvider
 {
