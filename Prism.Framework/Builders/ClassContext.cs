@@ -23,21 +23,37 @@ public class ClassContext
     /// <summary>
     /// Detected proxy methods which are categorized according to triggers marked on them.
     /// </summary>
-    internal readonly Dictionary<Type, HashSet<MemberInfo>> TriggerMembers = new();
+    internal readonly Dictionary<Type, Dictionary<MemberInfo, Attribute>> TriggerMembers = new();
 
-    internal void RegisterTriggerMember(Type trigger, MemberInfo member)
+    /// <summary>
+    /// Register a member to a trigger.
+    /// This method will invoke the <see cref="TriggerAttribute.Apply"/> method
+    /// if the attribute is a <see cref="TriggerAttribute"/>.
+    /// </summary>
+    /// <param name="attribute">Attribute to register to.</param>
+    /// <param name="member">The member where this trigger is marked.</param>
+    public void RegisterTriggerMember(Attribute attribute, MemberInfo member)
     {
-        if (!TriggerMembers.TryGetValue(trigger, out var group))
+        if (!TriggerMembers.TryGetValue(attribute.GetType(), out var group))
         {
-            group = new HashSet<MemberInfo>();
-            TriggerMembers[trigger] = group;
+            group = new Dictionary<MemberInfo, Attribute>();
+            TriggerMembers[attribute.GetType()] = group;
         }
-        group.Add(member);
+        group[member] = attribute;
+        if (attribute is TriggerAttribute trigger)
+            trigger.Apply(this);
     }
 
-    internal void UnregisterTriggerMember(Type trigger, MemberInfo member)
+    /// <summary>
+    /// Unregister a trigger member.
+    /// Attention, this will not erase the side effect of <see cref="TriggerAttribute"/>'s
+    /// <see cref="TriggerAttribute.Apply"/> method.
+    /// </summary>
+    /// <param name="attribute">Trigger of the member to unregister.</param>
+    /// <param name="member">Member to unregister.</param>
+    public void UnregisterTriggerMember(Type attribute, MemberInfo member)
     {
-        if (!TriggerMembers.TryGetValue(trigger, out var group))
+        if (!TriggerMembers.TryGetValue(attribute, out var group))
             return;
         group.Remove(member);
     }
@@ -55,9 +71,9 @@ public class ClassContext
     /// </summary>
     /// <param name="trigger">Trigger type.</param>
     /// <returns>Members which comply the specified trigger.</returns>
-    public IEnumerable<MemberInfo> GetTriggerMember(Type trigger)
-        => TriggerMembers.TryGetValue(trigger, out var methods) ? 
-            methods : Array.Empty<MemberInfo>();
+    public IEnumerable<KeyValuePair<MemberInfo, Attribute>> GetTriggerMember(Type trigger)
+        => TriggerMembers.TryGetValue(trigger, out var group) ? 
+            group : Array.Empty<KeyValuePair<MemberInfo, Attribute>>();
     
     public ClassContext(ModuleBuilder module, Type baseClass)
     {

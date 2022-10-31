@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -214,7 +213,7 @@ public class Generator
             if (member.GetCustomAttribute<TriggerAttribute>() == null)
                 continue;
             foreach (var attribute in member.GetCustomAttributes<TriggerAttribute>())
-                context.RegisterTriggerMember(attribute.GetType(), member);
+                context.RegisterTriggerMember(attribute, member);
             switch (member)
             {
                 case MethodInfo method:
