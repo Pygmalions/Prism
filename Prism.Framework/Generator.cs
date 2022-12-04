@@ -53,13 +53,17 @@ public class Generator
     private readonly Dictionary<Type, HashSet<IProxyPlugin>> _pluginsByType = new();
 
     /// <summary>
-    /// Register a proxy plugin.
+    /// Register proxy plugins with explicit triggers.
     /// </summary>
-    /// <param name="plugin">Proxy plugin instance.</param>
-    /// <exception cref="InvalidEnumArgumentException">
-    /// Throw if any PluginTriggerBy mode is invalid.
+    /// <param name="plugin">Plugin to register.</param>
+    /// <param name="triggers">Triggers which will trigger this plugin.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Throw if triggers is empty, or any trigger with a non-attribute type in attribute mode. 
     /// </exception>
-    public void RegisterPlugin(IProxyPlugin plugin)
+    /// <exception cref="InvalidEnumArgumentException">
+    /// Throw if any trigger is in a unsupported trigger mode.
+    /// </exception>
+    public void RegisterPlugin(IProxyPlugin plugin, params TriggerByAttribute[] triggers)
     {
         void AddToGroup(IDictionary<Type, HashSet<IProxyPlugin>> category, Type type, IProxyPlugin instance)
         {
@@ -73,7 +77,7 @@ public class Generator
         }
 
         var added = false;
-        foreach (var attribute in plugin.GetType().GetCustomAttributes<TriggerByAttribute>())
+        foreach (var attribute in triggers)
         {
             added = true;
             switch (attribute.Mode)
@@ -96,15 +100,26 @@ public class Generator
             throw new InvalidOperationException(
                 $"A valid plugin must have {nameof(TriggerByAttribute)} marked on it.");
     }
-
+    
     /// <summary>
-    /// Register a proxy plugin.
+    /// Register a proxy plugin with triggers marked on it.
     /// </summary>
     /// <param name="plugin">Proxy plugin instance.</param>
     /// <exception cref="InvalidEnumArgumentException">
-    /// Throw if any PluginTriggerBy mode is invalid.
+    /// Throw if any trigger is in a unsupported trigger mode.
     /// </exception>
-    public void UnregisterPlugin(IProxyPlugin plugin)
+    public void RegisterPlugin(IProxyPlugin plugin)
+        => RegisterPlugin(plugin, plugin.GetType().GetCustomAttributes<TriggerByAttribute>().ToArray());
+
+    /// <summary>
+    /// Unregister a proxy plugin with explicit triggers.
+    /// </summary>
+    /// <param name="plugin">Proxy plugin instance.</param>
+    /// <param name="triggers">Triggers to unregister from.</param>
+    /// <exception cref="InvalidEnumArgumentException">
+    /// Throw if any trigger is in a unsupported trigger mode.
+    /// </exception>
+    public void UnregisterPlugin(IProxyPlugin plugin, params TriggerByAttribute[] triggers)
     {
         void RemoveFromGroup(Dictionary<Type, HashSet<IProxyPlugin>> category, Type type, IProxyPlugin instance)
         {
@@ -115,7 +130,7 @@ public class Generator
                 category.Remove(type);
         }
         
-        foreach (var attribute in plugin.GetType().GetCustomAttributes<TriggerByAttribute>())
+        foreach (var attribute in triggers)
         {
             switch (attribute.Mode)
             {
@@ -131,6 +146,16 @@ public class Generator
         }
     }
     
+    /// <summary>
+    /// Register a proxy plugin from triggers marked on it.
+    /// </summary>
+    /// <param name="plugin">Proxy plugin instance.</param>
+    /// <exception cref="InvalidEnumArgumentException">
+    /// Throw if any PluginTriggerBy mode is invalid.
+    /// </exception>
+    public void UnregisterPlugin(IProxyPlugin plugin)
+        => UnregisterPlugin(plugin, plugin.GetType().GetCustomAttributes<TriggerByAttribute>().ToArray());
+    
     private static readonly CustomAttributeBuilder GeneratedAttributeBuilder = new(
         typeof(PrismGenerationAttribute).GetConstructor(Type.EmptyTypes)!, Array.Empty<object>());
     
@@ -139,12 +164,13 @@ public class Generator
     /// </summary>
     /// <param name="baseClass">Class to generate proxy for.</param>
     /// <returns>Proxy class.</returns>
-    /// <exception cref="NotImplementedException"></exception>
     private Type GenerateProxy(Type baseClass)
     {
         // Generate proxy builder context.
         var context = PrepareContext(baseClass);
-
+        
+        context.Builder.SetCustomAttribute(GeneratedAttributeBuilder);
+        
         var plugins = new HashSet<IProxyPlugin>();
         
         // Summarize plugins by trigger attributes.
@@ -266,6 +292,7 @@ public class Generator
             CallingConventions.Standard, methodBuilder.ProxiedMethod.ReturnType,
             methodParameters.Select(parameter => parameter.ParameterType).ToArray()
         );
+        proxyMethod.SetCustomAttribute(GeneratedAttributeBuilder);
         classContext.Builder.DefineMethodOverride(
             proxyMethod, methodBuilder.ProxiedMethod);
 
