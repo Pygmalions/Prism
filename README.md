@@ -1,3 +1,6 @@
+**This project is now archived. Main techniques are migrated to [EmitToolbox](https://github.com/Pygmalions/EmitToolbox), for name of Prism is the same to another famous UI library.
+In new project, the design is reworked to provide more flexibility and convenience to use.**
+
 # Prism
 
 Prism Framework is an AOP framework based on IL dynamic weaving,
